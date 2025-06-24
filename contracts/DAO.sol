@@ -15,6 +15,9 @@ contract DAO {
         uint256 amount;
         address payable recipient;
         uint256 votes;
+//        uint256 votesFor;
+//        uint256 votesAgianst;
+//        uint256 votesAbstain;
         bool finalized;
     }
 
@@ -22,13 +25,14 @@ contract DAO {
     mapping(uint256 => Proposal) public proposals;
     mapping(address => mapping (uint256 => bool)) public votes;
 
+    enum VoteType {Against, For, Abstain}
+
     event Propose(
         uint id,
         uint256 amount,
         address recipient,
         address creator
     );
-
     event Vote(uint256 id, address investor);
     event Finalize(uint256 id);
 
@@ -65,6 +69,8 @@ contract DAO {
             _amount, 
             _recipient, 
             0, 
+//            0, 
+//            0, 
             false
         );
 
@@ -72,12 +78,21 @@ contract DAO {
     }
 
     // Vote on proposal
-    function vote(uint256 _id) external onlyInvestor {
+    function vote(uint256 _id, VoteType _voteType) external onlyInvestor {
         Proposal storage proposal = proposals[_id];
 
         require(!votes[msg.sender][_id], "already voted");
 
-        proposal.votes +=  token.balanceOf(msg.sender);
+        if (_voteType == VoteType.For) {
+//            proposal.votesFor +=  token.balanceOf(msg.sender);
+            proposal.votes +=  token.balanceOf(msg.sender);
+        } else if (_voteType == VoteType.Against) {
+//            proposal.votesAgainst -=  token.balanceOf(msg.sender);            
+            proposal.votes -=  token.balanceOf(msg.sender);            
+        } else if (_voteType == VoteType.Abstain) {
+        }
+
+//        proposal.votes +=  token.balanceOf(msg.sender);
 
         votes[msg.sender][_id] = true;
 
@@ -96,6 +111,7 @@ contract DAO {
         proposal.finalized = true;
 
         // Check that the contract has enough votes
+//        require(proposal.votesFor >= quorum, "must reach quorum to finalize proposal");
         require(proposal.votes >= quorum, "must reach quorum to finalize proposal");
 
         // Check that the contract has enough ether

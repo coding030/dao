@@ -43,6 +43,9 @@ function App() {
     setTreasuryBalance(treasuryBalance)
 //    console.log(treasuryBalance)
 
+//    let recipientBalance = await provider.getBalance(dao.Proposal.recipient.address)
+//    console.log(recipientBalance)
+
     // Fetch accounts
     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
     const account = ethers.utils.getAddress(accounts[0])
