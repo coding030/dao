@@ -3,7 +3,7 @@ import Button from 'react-bootstrap/Button';
 import { ethers } from 'ethers'
 
 const Proposals = ({ provider, dao, proposals, quorum, setIsLoading }) => {
-//	console.log(proposals)
+	console.log(proposals)
 
   const voteHandler = async (id) => {
 //  	console.log("voting...", id.toString())

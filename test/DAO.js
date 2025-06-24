@@ -107,6 +107,10 @@ describe('DAO', () => {
       it('rejects non-investor', async () => {
         await expect(dao.connect(user).createProposal('Proposal 1', ether('100'), recipient.address)).to.be.reverted
       })
+
+      it('rejects empty proposal name', async () => {
+        await expect(dao.connect(investor1).createProposal('', ether('100'), recipient.address)).to.be.reverted
+      })
     })
   })
 

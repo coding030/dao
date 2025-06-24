@@ -42,8 +42,8 @@ contract DAO {
 
     modifier onlyInvestor() {
         require(
-            Token(token).balanceOf(msg.sender) > 0, 
-//            token.balanceOf(msg.sender) > 0, 
+//            Token(token).balanceOf(msg.sender) > 0, 
+            token.balanceOf(msg.sender) > 0, 
             "must be token holder"
         );
         _;
@@ -55,6 +55,7 @@ contract DAO {
         address payable _recipient
     ) external onlyInvestor {
         require(address(this).balance >= _amount);
+        require(bytes(_name).length > 0);
 
         proposalCount++;
 

@@ -4,6 +4,7 @@ import { ethers } from 'ethers'
 
 // Components
 import Navigation from './Navigation';
+import Create from './Create';
 import Proposals from './Proposals';
 import Loading from './Loading';
 
@@ -25,6 +26,8 @@ function App() {
 
   const [isLoading, setIsLoading] = useState(true)
 
+  let formattedQuorum
+
   const loadBlockchainData = async () => {
     // Initiate provider
     const provider = new ethers.providers.Web3Provider(window.ethereum)
@@ -38,6 +41,7 @@ function App() {
     let treasuryBalance = await provider.getBalance(dao.address)
     treasuryBalance = ethers.utils.formatUnits(treasuryBalance, 18)
     setTreasuryBalance(treasuryBalance)
+//    console.log(treasuryBalance)
 
     // Fetch accounts
     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
@@ -57,7 +61,13 @@ function App() {
 //    console.log(items)
 
     // Fetch quorum
-    setQuorum(await dao.quorum())
+    let quorum = await dao.quorum()
+    quorum = quorum.toString()
+    setQuorum(quorum)
+//    formattedQuorum = ethers.utils.formatUnits(quorum, 18)
+//    console.log(quorum)
+//    console.log(ethers.utils.formatUnits(quorum, 18))
+//    console.log(formattedQuorum)
 
     setIsLoading(false)
   }
@@ -78,9 +88,19 @@ function App() {
         <Loading />
       ) : (
         <>
+          <Create
+            provider={provider}
+            dao={dao}
+            setIsLoading={setIsLoading}            
+          />
+
           <hr/>
 
           <p className='text-center'><strong>Treasury Balance:</strong> {treasuryBalance} ETH</p>
+
+          <hr/>
+
+          <p className='text-center'><strong>Required quorum:</strong> {ethers.utils.formatUnits(quorum, 18)} votes</p>
 
           <hr/>
 
