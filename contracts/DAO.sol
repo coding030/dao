@@ -3,11 +3,19 @@ pragma solidity ^0.8.0;
 
 import "hardhat/console.sol";
 import "./Token.sol";
+//import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
+interface IERC20 {
+    function transfer(address to, uint256 amount) external returns (bool);
+    function balanceOf(address account) external view returns (uint256);
+}
 
 contract DAO {
     address owner;
     Token public token;
     uint256 public quorum;
+    uint256 public proposalCount;
+    IERC20 public paymentToken;
 
     struct Proposal {
         uint256 id;
@@ -21,7 +29,6 @@ contract DAO {
         bool finalized;
     }
 
-    uint256 public proposalCount;
     mapping(uint256 => Proposal) public proposals;
     mapping(address => mapping (uint256 => bool)) public votes;
 
