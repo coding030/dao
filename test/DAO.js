@@ -7,6 +7,13 @@ const tokens = (n) => {
 
 const ether = tokens
 
+//Mainnet
+//const usdcAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
+//Linea Sepolia
+//const usdcAddress = '0xFEce4462D57bD51A6A552365A011b95f0E16d9B7'
+//Ethereum Sepolia
+const usdcAddress = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
+
 describe('DAO', () => {
   let token, dao
   let deployer,
@@ -50,7 +57,7 @@ describe('DAO', () => {
     await transaction.wait()
 
     const DAO = await ethers.getContractFactory('DAO')
-    dao = await DAO.deploy(token.address, '500000000000000000000001')
+    dao = await DAO.deploy(token.address, '500000000000000000000001', usdcAddress)
 
     await funder.sendTransaction({ to: dao.address, value: ether('100') })
   })

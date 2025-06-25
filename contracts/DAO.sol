@@ -5,10 +5,32 @@ import "hardhat/console.sol";
 import "./Token.sol";
 //import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+//interface IERC20 {
+//    function transfer(address to, uint256 amount) external returns (bool);
+//    function balanceOf(address account) external view returns (uint256);
+//}
+
+/**
+ * @dev Interface of the ERC-20 standard as defined in the ERC.
+ */
 interface IERC20 {
-    function transfer(address to, uint256 amount) external returns (bool);
+    event Transfer(address indexed from, address indexed to, uint256 value);
+
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+
+    function totalSupply() external view returns (uint256);
+
     function balanceOf(address account) external view returns (uint256);
+
+    function transfer(address to, uint256 value) external returns (bool);
+
+    function allowance(address owner, address spender) external view returns (uint256);
+
+    function approve(address spender, uint256 value) external returns (bool);
+
+    function transferFrom(address from, address to, uint256 value) external returns (bool);
 }
+
 
 contract DAO {
     address owner;
@@ -43,10 +65,11 @@ contract DAO {
     event Vote(uint256 id, address investor);
     event Finalize(uint256 id);
 
-    constructor(Token _token, uint256 _quorum) public {
+    constructor(Token _token, uint256 _quorum, address _paymentTokenAddress) public {
         owner = msg.sender;
         token = _token;
         quorum = _quorum;
+        paymentToken = IERC20(_paymentTokenAddress);
     }
 
     receive() external payable{}
@@ -65,7 +88,8 @@ contract DAO {
         uint256 _amount, 
         address payable _recipient
     ) external onlyInvestor {
-        require(address(this).balance >= _amount);
+//        require(address(this).balance >= _amount);
+        require(paymentToken.balanceOf(address(this)) >= _amount);
         require(bytes(_name).length > 0);
 
         proposalCount++;
