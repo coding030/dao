@@ -30,8 +30,6 @@ function App() {
 
   const [isLoading, setIsLoading] = useState(true)
 
-  let formattedQuorum
-
   const loadBlockchainData = async () => {
     // Initiate provider
     const provider = new ethers.providers.Web3Provider(window.ethereum)
@@ -47,10 +45,6 @@ function App() {
     let treasuryBalance = await provider.getBalance(dao.address)
     treasuryBalance = ethers.utils.formatUnits(treasuryBalance, 18)
     setTreasuryBalance(treasuryBalance)
-//    console.log(treasuryBalance)
-
-//    let recipientBalance = await provider.getBalance(dao.Proposal.recipient.address)
-//    console.log(recipientBalance)
 
     // Fetch accounts
     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
@@ -66,34 +60,46 @@ function App() {
     for(var i = 0; i < count; i++) {
       proposal = await dao.proposals(i + 1)
       items.push(proposal)
+//  items.push({
+//    id: proposal.id.toString(),
+//    name: proposal.name,
+//    amount: proposal.amount.toString(),
+//    recipient: proposal.recipient,
+//    votesFor: proposal.votesFor.toString(),
+//    votesAgainst: proposal.votesAgainst.toString(),
+//    votesAbstain: proposal.votesAbstain.toString(),
+//    finalized: proposal.finalized,
+//  })
       recBalances.push(await token.balanceOf(proposal.recipient))
-      console.log(proposal.recipient)
-      console.log(recBalances)
 
       const hasVoted = await dao.votes(account, proposal.id)
       statuses[proposal.id.toString()] = hasVoted;
     }
 
     setProposals(items)
+//    setProposals([...items])
     setVoteStatus(statuses)
     setRecipientBalance(recBalances)
 
-//    console.log(items)
+  console.log("Proposals after loading:", items.map(p => ({
+    id: p.id.toString(),
+    name: p.name,
+    votesFor: p.votesFor.toString(),
+    votesAgainst: p.votesAgainst.toString(),
+    finalized: p.finalized
+  })))
 
     // Fetch quorum
     let quorum = await dao.quorum()
     quorum = quorum.toString()
     setQuorum(quorum)
-//    formattedQuorum = ethers.utils.formatUnits(quorum, 18)
-//    console.log(quorum)
-//    console.log(ethers.utils.formatUnits(quorum, 18))
-//    console.log(formattedQuorum)
 
     setIsLoading(false)
   }
 
   useEffect(() => {
     if (isLoading) {
+//      loadBlockchainData().finally(() => setIsLoading(false));
       loadBlockchainData()
     }
   }, [isLoading]);

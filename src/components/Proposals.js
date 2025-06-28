@@ -12,14 +12,8 @@ const Proposals = ({
 	voteStatus,
 	recipientBalance
 	}) => {
-//	console.log(provider)
-//	console.log(dao)
-//	console.log(proposals)
-//	console.log(quorum)
-//	console.log(setIsLoading)
 
   const voteHandler = async (id, voteType) => {
-//  	console.log("voting...", id.toString())
   	try {
   		const signer = await provider.getSigner()
   		const transaction = await dao.connect(signer).vote(id, voteType)
@@ -42,7 +36,6 @@ const Proposals = ({
   	setIsLoading(true)
   }
 
-//	return (<></>);
   return (
     <Table striped bordered hover responsive variant='dark'>
       <thead>
@@ -67,7 +60,13 @@ const Proposals = ({
           <tr key={index}>
             <td>{proposal.id.toString()}</td>
             <td>{proposal.name}</td>
-            <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <td style={{ 
+            	maxWidth: '200px', 
+            	overflow: 'hidden', 
+            	textOverflow: 'ellipsis', 
+            	whiteSpace: 'nowrap' 
+            	}}
+            >
             	{proposal.recipient}
             </td>
             <td>{ethers.utils.formatUnits(recipientBalance[index], 'ether')} token</td>
@@ -110,9 +109,12 @@ const Proposals = ({
                 )}
             </td>
             <td>
-                {!proposal.finalized && 
-                (proposal.votesFor - proposal.votesAgainst) > quorum && 
-                (
+                {
+                  !proposal.finalized && 
+                  (
+                    parseFloat(ethers.utils.formatUnits(proposal.votesFor, 'ether')) - 
+                    parseFloat(ethers.utils.formatUnits(proposal.votesAgainst, 'ether'))
+                   ) > parseFloat(ethers.utils.formatUnits(quorum, 'ether')) && (
             	  <Button 
             	    variant="primary" 
             	    style={{ width: '100%' }}

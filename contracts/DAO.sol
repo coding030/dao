@@ -119,7 +119,7 @@ contract DAO {
             proposal.votesAgainst +=  token.balanceOf(msg.sender);            
 //            proposal.votes -=  token.balanceOf(msg.sender);            
         } else if (_voteType == VoteType.Abstain) {
-            proposal.votesAbstain += proposal.votesAbstain;
+            proposal.votesAbstain += token.balanceOf(msg.sender);
         }
 
 //        proposal.votes +=  token.balanceOf(msg.sender);
