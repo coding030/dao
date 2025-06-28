@@ -2,19 +2,29 @@ import Table from 'react-bootstrap/Table';
 import Button from 'react-bootstrap/Button';
 import { ethers } from 'ethers'
 
-const Proposals = ({ provider, dao, proposals, quorum, setIsLoading }) => {
+const Proposals = ({ 
+	provider,
+	dao, 
+	proposals, 
+	quorum, 
+	setIsLoading, 
+	account, 
+	voteStatus,
+	recipientBalance
+	}) => {
 //	console.log(provider)
 //	console.log(dao)
 //	console.log(proposals)
 //	console.log(quorum)
 //	console.log(setIsLoading)
 
-  const voteHandler = async (id) => {
+  const voteHandler = async (id, voteType) => {
 //  	console.log("voting...", id.toString())
   	try {
   		const signer = await provider.getSigner()
-  		const transaction = await dao.connect(signer).vote(id)
+  		const transaction = await dao.connect(signer).vote(id, voteType)
   		await transaction.wait()
+  		console.log(transaction)
     } catch {
     	window.alert('User rejected or transaction reverted')
     }
@@ -34,17 +44,21 @@ const Proposals = ({ provider, dao, proposals, quorum, setIsLoading }) => {
 
 //	return (<></>);
   return (
-    <Table striped bordered hover responsive>
+    <Table striped bordered hover responsive variant='dark'>
       <thead>
         <tr>
           <th>#</th>
           <th>Proposal Name</th>
           <th>Recipient Address</th>
-          <th>Recipient Balance</th>
-          <th>Amount</th>
+          <th>Recipient Token Balance</th>
+          <th>Prposal Amount</th>
           <th>Status</th>
-          <th>Total Votes</th>
-          <th>Cast Vote</th>
+          <th>Total 'For' Votes</th>
+          <th>Total 'Against' Votes</th>
+          <th>Total 'Abstain' Votes</th>
+          <th>Cast 'For'</th>
+          <th>Cast 'Against'</th>
+          <th>Cast 'Abstain'</th>
           <th>Finalize</th>
         </tr>
       </thead>
@@ -53,24 +67,52 @@ const Proposals = ({ provider, dao, proposals, quorum, setIsLoading }) => {
           <tr key={index}>
             <td>{proposal.id.toString()}</td>
             <td>{proposal.name}</td>
-            <td>{proposal.recipient}</td>
-            <td>{ethers.utils.formatUnits(proposal.amount, 'ether')} ETH</td>
+            <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            	{proposal.recipient}
+            </td>
+            <td>{ethers.utils.formatUnits(recipientBalance[index], 'ether')} token</td>
             <td>{ethers.utils.formatUnits(proposal.amount, 'ether')} ETH</td>
             <td>{proposal.finalized ? 'Approved' : 'In Progress'}</td>
-            <td>{ethers.utils.formatUnits(proposal.votes, 'ether')}</td>
+            <td>{ethers.utils.formatUnits(proposal.votesFor, 'ether')}</td>
+            <td>{ethers.utils.formatUnits(proposal.votesAgainst, 'ether')}</td>
+            <td>{ethers.utils.formatUnits(proposal.votesAbstain, 'ether')}</td>
             <td>
-                {!proposal.finalized && (
+                {!proposal.finalized && !voteStatus[proposal.id.toString()] && (
             	  <Button 
             	    variant="primary" 
             	    style={{ width: '100%' }}
-            	    onClick={() => voteHandler(proposal.id)}
+            	    onClick={() => voteHandler(proposal.id, 0)}
             	  >
             	    Vote
             	  </Button>
                 )}
             </td>
             <td>
-                {!proposal.finalized && proposal.votes > quorum && (
+                {!proposal.finalized && !voteStatus[proposal.id.toString()] && (
+            	  <Button 
+            	    variant="primary" 
+            	    style={{ width: '100%' }}
+            	    onClick={() => voteHandler(proposal.id, 1)}
+            	  >
+            	    Vote
+            	  </Button>
+                )}
+            </td>
+            <td>
+                {!proposal.finalized && !voteStatus[proposal.id.toString()] && (
+            	  <Button 
+            	    variant="primary" 
+            	    style={{ width: '100%' }}
+            	    onClick={() => voteHandler(proposal.id, 2)}
+            	  >
+            	    Vote
+            	  </Button>
+                )}
+            </td>
+            <td>
+                {!proposal.finalized && 
+                (proposal.votesFor - proposal.votesAgainst) > quorum && 
+                (
             	  <Button 
             	    variant="primary" 
             	    style={{ width: '100%' }}

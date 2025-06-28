@@ -35,13 +35,13 @@ async function main() {
   console.log(`Token fetched: ${token.address}\n`)
 
   // Send tokens to investors - each one gets 20%
-  transaction = await token.transfer(investor1.address, tokens(200000))
+  transaction = await token.transfer(investor1.address, tokens(150000))
   await transaction.wait()
 
   transaction = await token.transfer(investor2.address, tokens(200000))
   await transaction.wait()
 
-  transaction = await token.transfer(investor3.address, tokens(200000))
+  transaction = await token.transfer(investor3.address, tokens(250000))
   await transaction.wait()
 
   console.log(`Fetching dao...\n`)
@@ -57,24 +57,25 @@ async function main() {
 
   for (var i = 0; i < 3; i++) {
       // Create Proposal
-      transaction = await dao.connect(investor1).createProposal(`Proposal ${i + 1}`, ether(100), recipient.address)
+//      transaction = await dao.connect(investor1).createProposal(`Proposal ${i + 1}`, ether(100), recipient.address)
+        transaction = await dao.connect(investor1).createProposal(`Proposal ${i + 1}`, ether(100), accounts[i].address)
       await transaction.wait()
 
       // Vote 1
-      transaction = await dao.connect(investor1).vote(i + 1)
+      transaction = await dao.connect(investor1).vote(i + 1, 0)
       await transaction.wait()
 
       // Vote 2
-      transaction = await dao.connect(investor2).vote(i + 1)
+      transaction = await dao.connect(investor2).vote(i + 1, 0)
       await transaction.wait()
 
       // Vote 3
-      transaction = await dao.connect(investor3).vote(i + 1)
-      await transaction.wait()
+//      transaction = await dao.connect(investor3).vote(i + 1, 0)
+//      await transaction.wait()
 
       // Finalize
-      transaction = await dao.connect(investor1).finalizeProposal(i + 1)
-      await transaction.wait()
+//      transaction = await dao.connect(investor1).finalizeProposal(i + 1)
+//      await transaction.wait()
 
       console.log(`Created & Finalized Proposal ${i + 1}\n`)
   }
@@ -86,11 +87,11 @@ async function main() {
     await transaction.wait()
 
     // Vote 1
-    transaction = await dao.connect(investor2).vote(4)
+    transaction = await dao.connect(investor2).vote(4, 0)
     await transaction.wait()
 
     // Vote 2
-    transaction = await dao.connect(investor3).vote(4)
+    transaction = await dao.connect(investor3).vote(4, 0)
     await transaction.wait()
 
     console.log(`Finished.\n`)

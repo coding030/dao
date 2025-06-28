@@ -10,6 +10,7 @@ import Loading from './Loading';
 
 // ABIs: Import your contract ABIs here
 import DAO_ABI from '../abis/DAO.json'
+import Token_ABI from '../abis/Token.json'
 
 // Config: Import your network config here
 import config from '../config.json';
@@ -18,8 +19,11 @@ function App() {
   const [provider, setProvider] = useState(null)
   const [dao, setDao] = useState(null)
   const [treasuryBalance, setTreasuryBalance] = useState(0)
+  const [recipientBalance, setRecipientBalance] = useState(0)
+  const [voteStatus, setVoteStatus] = useState({})
 
-  const [account, setAccount] = useState(null)
+
+  const [account, setAccount] = useState('')
 
   const [proposals, setProposals] = useState(null)
   const [quorum, setQuorum] = useState(null)
@@ -37,6 +41,8 @@ function App() {
     const dao = new ethers.Contract(config[31337].dao.address, DAO_ABI, provider)
     setDao(dao)
 
+    const token = new ethers.Contract(config[31337].token.address, Token_ABI, provider)
+
     // Fetch treasury balance
     let treasuryBalance = await provider.getBalance(dao.address)
     treasuryBalance = ethers.utils.formatUnits(treasuryBalance, 18)
@@ -53,13 +59,24 @@ function App() {
 
     const count = await dao.proposalCount()
     const items = []
+    const statuses = {}
+    const recBalances = []
+    let proposal
 
     for(var i = 0; i < count; i++) {
-      const proposal = await dao.proposals(i + 1)
+      proposal = await dao.proposals(i + 1)
       items.push(proposal)
+      recBalances.push(await token.balanceOf(proposal.recipient))
+      console.log(proposal.recipient)
+      console.log(recBalances)
+
+      const hasVoted = await dao.votes(account, proposal.id)
+      statuses[proposal.id.toString()] = hasVoted;
     }
 
     setProposals(items)
+    setVoteStatus(statuses)
+    setRecipientBalance(recBalances)
 
 //    console.log(items)
 
@@ -91,7 +108,7 @@ function App() {
         <Loading />
       ) : (
         <>
-          <Create
+          <Create 
             provider={provider}
             dao={dao}
             setIsLoading={setIsLoading}            
@@ -107,12 +124,15 @@ function App() {
 
           <hr/>
 
-          <Proposals 
+          <Proposals
             provider={provider}
             dao={dao}
             proposals={proposals}
             quorum={quorum}
             setIsLoading={setIsLoading}
+            account={account}
+            voteStatus={voteStatus}
+            recipientBalance={recipientBalance}
           />
         </>
       )}

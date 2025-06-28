@@ -29,7 +29,10 @@ const Create = ({ provider, dao, setIsLoading }) => {
 
   return(
     <Form onSubmit={createHandler}>
-      <Form.Group style={{ maxWidth: '450px', margin: '50px auto' }}>
+      <Form.Group 
+        style={{ maxWidth: '450px', margin: '50px auto' }}
+        className='bg-dark text-light p-4 rounded'
+      >
         <Form.Control
           type='text'
           placeholder='Enter name'
@@ -39,7 +42,7 @@ const Create = ({ provider, dao, setIsLoading }) => {
         <Form.Control
           type='number'
           placeholder='Enter amount'
-          className='my-2'
+          className='my-2 bg-dark text-light'
           onChange={(e) => setAmount(e.target.value)}
         />
         <Form.Control

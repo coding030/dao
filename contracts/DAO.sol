@@ -5,11 +5,6 @@ import "hardhat/console.sol";
 import "./Token.sol";
 //import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-//interface IERC20 {
-//    function transfer(address to, uint256 amount) external returns (bool);
-//    function balanceOf(address account) external view returns (uint256);
-//}
-
 /**
  * @dev Interface of the ERC-20 standard as defined in the ERC.
  */
@@ -37,24 +32,27 @@ contract DAO {
     Token public token;
     uint256 public quorum;
     uint256 public proposalCount;
-    IERC20 public paymentToken;
+    uint256 finalForVotes = 0;
+//    IERC20 public paymentToken;
 
     struct Proposal {
         uint256 id;
         string name;
         uint256 amount;
         address payable recipient;
-        uint256 votes;
-//        uint256 votesFor;
-//        uint256 votesAgianst;
-//        uint256 votesAbstain;
+//        uint256 votes;
+        uint256 votesFor;
+        uint256 votesAgainst;
+        uint256 votesAbstain;
         bool finalized;
+//        mapping(address => mapping (uint256 => bool)) public votes;
     }
 
     mapping(uint256 => Proposal) public proposals;
     mapping(address => mapping (uint256 => bool)) public votes;
+    mapping(address => mapping (uint256 => VoteType)) public votesType;
 
-    enum VoteType {Against, For, Abstain}
+    enum VoteType {For, Against, Abstain}
 
     event Propose(
         uint id,
@@ -65,11 +63,11 @@ contract DAO {
     event Vote(uint256 id, address investor);
     event Finalize(uint256 id);
 
-    constructor(Token _token, uint256 _quorum, address _paymentTokenAddress) public {
+    constructor(Token _token, uint256 _quorum) {
         owner = msg.sender;
         token = _token;
         quorum = _quorum;
-        paymentToken = IERC20(_paymentTokenAddress);
+//        paymentToken = IERC20(_paymentTokenAddress);
     }
 
     receive() external payable{}
@@ -88,8 +86,8 @@ contract DAO {
         uint256 _amount, 
         address payable _recipient
     ) external onlyInvestor {
-//        require(address(this).balance >= _amount);
-        require(paymentToken.balanceOf(address(this)) >= _amount);
+        require(address(this).balance >= _amount);
+//        require(paymentToken.balanceOf(address(this)) >= _amount);
         require(bytes(_name).length > 0);
 
         proposalCount++;
@@ -100,8 +98,8 @@ contract DAO {
             _amount, 
             _recipient, 
             0, 
-//            0, 
-//            0, 
+            0, 
+            0, 
             false
         );
 
@@ -115,20 +113,26 @@ contract DAO {
         require(!votes[msg.sender][_id], "already voted");
 
         if (_voteType == VoteType.For) {
-//            proposal.votesFor +=  token.balanceOf(msg.sender);
-            proposal.votes +=  token.balanceOf(msg.sender);
+            proposal.votesFor +=  token.balanceOf(msg.sender);
+//            proposal.votes +=  token.balanceOf(msg.sender);
         } else if (_voteType == VoteType.Against) {
-//            proposal.votesAgainst -=  token.balanceOf(msg.sender);            
-            proposal.votes -=  token.balanceOf(msg.sender);            
+            proposal.votesAgainst +=  token.balanceOf(msg.sender);            
+//            proposal.votes -=  token.balanceOf(msg.sender);            
         } else if (_voteType == VoteType.Abstain) {
+            proposal.votesAbstain += proposal.votesAbstain;
         }
 
 //        proposal.votes +=  token.balanceOf(msg.sender);
 
         votes[msg.sender][_id] = true;
+        votesType[msg.sender][_id] = _voteType;
 
         emit Vote(_id, msg.sender);
     }
+
+//    function hasVoted(uint proposalId, address user) public view returns (bool) {
+//        return proposals[proposalId].voters[user];
+//    }
 
     // Finalize proposal & transfer funds
     function finalizeProposal(uint256 _id) external onlyInvestor {
@@ -143,7 +147,11 @@ contract DAO {
 
         // Check that the contract has enough votes
 //        require(proposal.votesFor >= quorum, "must reach quorum to finalize proposal");
-        require(proposal.votes >= quorum, "must reach quorum to finalize proposal");
+//        require(proposal.votes >= quorum, "must reach quorum to finalize proposal");
+        if (proposal.votesFor > proposal.votesAgainst) {
+            finalForVotes = proposal.votesFor - proposal.votesAgainst;
+        }
+        require(finalForVotes >= quorum, "must reach quorum to finalize proposal");
 
         // Check that the contract has enough ether
         require(address(this).balance >= proposal.amount);
