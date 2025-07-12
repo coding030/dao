@@ -19,9 +19,8 @@ function App() {
   const [provider, setProvider] = useState(null)
   const [dao, setDao] = useState(null)
   const [treasuryBalance, setTreasuryBalance] = useState(0)
-  const [recipientBalance, setRecipientBalance] = useState(0)
+//  const [recipientBalance, setRecipientBalance] = useState(0)
   const [voteStatus, setVoteStatus] = useState({})
-
 
   const [account, setAccount] = useState('')
 
@@ -35,11 +34,14 @@ function App() {
     const provider = new ethers.providers.Web3Provider(window.ethereum)
     setProvider(provider)
 
+    // Fetch Chain ID
+    const { chainId } = await provider.getNetwork()
+
     // Initiate contract
-    const dao = new ethers.Contract(config[31337].dao.address, DAO_ABI, provider)
+    const dao = new ethers.Contract(config[chainId].dao.address, DAO_ABI, provider)
     setDao(dao)
 
-    const token = new ethers.Contract(config[31337].token.address, Token_ABI, provider)
+    const token = new ethers.Contract(config[chainId].token.address, Token_ABI, provider)
 
     // Fetch treasury balance
     let treasuryBalance = await provider.getBalance(dao.address)
@@ -54,40 +56,33 @@ function App() {
     const count = await dao.proposalCount()
     const items = []
     const statuses = {}
-    const recBalances = []
-    let proposal
+//    const recBalances = []
 
-    for(var i = 0; i < count; i++) {
-      proposal = await dao.proposals(i + 1)
-      items.push(proposal)
-//  items.push({
-//    id: proposal.id.toString(),
-//    name: proposal.name,
-//    amount: proposal.amount.toString(),
-//    recipient: proposal.recipient,
-//    votesFor: proposal.votesFor.toString(),
-//    votesAgainst: proposal.votesAgainst.toString(),
-//    votesAbstain: proposal.votesAbstain.toString(),
-//    finalized: proposal.finalized,
-//  })
-      recBalances.push(await token.balanceOf(proposal.recipient))
+    for(let i = 0; i < count; i++) {
+      const proposal = await dao.proposals(i + 1)
+      const recipientTokens = await token.balanceOf(proposal.recipient)
+
+      items.push({
+        ...proposal,
+        recipientBalance: recipientTokens
+      })
 
       const hasVoted = await dao.votes(account, proposal.id)
       statuses[proposal.id.toString()] = hasVoted;
     }
 
-    setProposals(items)
-//    setProposals([...items])
-    setVoteStatus(statuses)
-    setRecipientBalance(recBalances)
+//    setProposals(items)
+    setProposals([...items])
+//    setVoteStatus(statuses)
+    setVoteStatus({...statuses})
 
-  console.log("Proposals after loading:", items.map(p => ({
-    id: p.id.toString(),
-    name: p.name,
-    votesFor: p.votesFor.toString(),
-    votesAgainst: p.votesAgainst.toString(),
-    finalized: p.finalized
-  })))
+//  console.log("Proposals after loading:", items.map(p => ({
+//    id: p.id.toString(),
+//    name: p.name,
+//    votesFor: p.votesFor.toString(),
+//    votesAgainst: p.votesAgainst.toString(),
+//    finalized: p.finalized
+//  })))
 
     // Fetch quorum
     let quorum = await dao.quorum()
@@ -114,19 +109,23 @@ function App() {
         <Loading />
       ) : (
         <>
-          <Create 
+          <Create
             provider={provider}
             dao={dao}
-            setIsLoading={setIsLoading}            
+            setIsLoading={setIsLoading}
           />
 
           <hr/>
 
-          <p className='text-center'><strong>Treasury Balance:</strong> {treasuryBalance} ETH</p>
+          <p className='text-center'>
+            <strong>Treasury Balance:</strong> {treasuryBalance} ETH
+          </p>
 
           <hr/>
 
-          <p className='text-center'><strong>Required quorum:</strong> {ethers.utils.formatUnits(quorum, 18)} votes</p>
+          <p className='text-center'>
+            <strong>Required quorum:</strong> {ethers.utils.formatUnits(quorum, 18)} votes
+          </p>
 
           <hr/>
 
@@ -138,7 +137,6 @@ function App() {
             setIsLoading={setIsLoading}
             account={account}
             voteStatus={voteStatus}
-            recipientBalance={recipientBalance}
           />
         </>
       )}

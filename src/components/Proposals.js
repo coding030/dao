@@ -2,15 +2,14 @@ import Table from 'react-bootstrap/Table';
 import Button from 'react-bootstrap/Button';
 import { ethers } from 'ethers'
 
-const Proposals = ({ 
+const Proposals = ({
 	provider,
-	dao, 
-	proposals, 
-	quorum, 
-	setIsLoading, 
-	account, 
-	voteStatus,
-	recipientBalance
+	dao,
+	proposals,
+	quorum,
+	setIsLoading,
+	account,
+	voteStatus
 	}) => {
 
   const voteHandler = async (id, voteType) => {
@@ -60,16 +59,16 @@ const Proposals = ({
           <tr key={index}>
             <td>{proposal.id.toString()}</td>
             <td>{proposal.name}</td>
-            <td style={{ 
-            	maxWidth: '200px', 
-            	overflow: 'hidden', 
-            	textOverflow: 'ellipsis', 
-            	whiteSpace: 'nowrap' 
+            <td style={{
+            	maxWidth: '200px',
+            	overflow: 'hidden',
+            	textOverflow: 'ellipsis',
+            	whiteSpace: 'nowrap'
             	}}
             >
             	{proposal.recipient}
             </td>
-            <td>{ethers.utils.formatUnits(recipientBalance[index], 'ether')} token</td>
+            <td>{ethers.utils.formatUnits(proposal.recipientBalance, 'ether')} token</td>
             <td>{ethers.utils.formatUnits(proposal.amount, 'ether')} ETH</td>
             <td>{proposal.finalized ? 'Approved' : 'In Progress'}</td>
             <td>{ethers.utils.formatUnits(proposal.votesFor, 'ether')}</td>
@@ -77,8 +76,8 @@ const Proposals = ({
             <td>{ethers.utils.formatUnits(proposal.votesAbstain, 'ether')}</td>
             <td>
                 {!proposal.finalized && !voteStatus[proposal.id.toString()] && (
-            	  <Button 
-            	    variant="primary" 
+            	  <Button
+            	    variant="primary"
             	    style={{ width: '100%' }}
             	    onClick={() => voteHandler(proposal.id, 0)}
             	  >
@@ -88,8 +87,8 @@ const Proposals = ({
             </td>
             <td>
                 {!proposal.finalized && !voteStatus[proposal.id.toString()] && (
-            	  <Button 
-            	    variant="primary" 
+            	  <Button
+            	    variant="primary"
             	    style={{ width: '100%' }}
             	    onClick={() => voteHandler(proposal.id, 1)}
             	  >
@@ -99,8 +98,8 @@ const Proposals = ({
             </td>
             <td>
                 {!proposal.finalized && !voteStatus[proposal.id.toString()] && (
-            	  <Button 
-            	    variant="primary" 
+            	  <Button
+            	    variant="primary"
             	    style={{ width: '100%' }}
             	    onClick={() => voteHandler(proposal.id, 2)}
             	  >
@@ -110,21 +109,21 @@ const Proposals = ({
             </td>
             <td>
                 {
-                  !proposal.finalized && 
+                  !proposal.finalized &&
                   (
-                    parseFloat(ethers.utils.formatUnits(proposal.votesFor, 'ether')) - 
+                    parseFloat(ethers.utils.formatUnits(proposal.votesFor, 'ether')) -
                     parseFloat(ethers.utils.formatUnits(proposal.votesAgainst, 'ether'))
                    ) > parseFloat(ethers.utils.formatUnits(quorum, 'ether')) && (
-            	  <Button 
-            	    variant="primary" 
+            	  <Button
+            	    variant="primary"
             	    style={{ width: '100%' }}
-            	    onClick={() => finalizeHandler(proposal.id)}            	    
+            	    onClick={() => finalizeHandler(proposal.id)}
             	  >
             	    Finalize
             	  </Button>
                 )}
             </td>
-          </tr>          	
+          </tr>
           ))}
       </tbody>
     </Table>

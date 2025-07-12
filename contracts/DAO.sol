@@ -74,32 +74,33 @@ contract DAO {
 
     modifier onlyInvestor() {
         require(
-//            Token(token).balanceOf(msg.sender) > 0, 
-            token.balanceOf(msg.sender) > 0, 
+            token.balanceOf(msg.sender) > 0,
             "must be token holder"
         );
         _;
     }
 
     function createProposal(
-        string memory _name, 
-        uint256 _amount, 
+        string memory _name,
+        uint256 _amount,
         address payable _recipient
     ) external onlyInvestor {
-        require(address(this).balance >= _amount);
-//        require(paymentToken.balanceOf(address(this)) >= _amount);
+        require(
+            address(this).balance >= _amount,
+            "Proposal amount exceeds DAO treasury balance"
+        );
         require(bytes(_name).length > 0);
 
         proposalCount++;
 
         proposals[proposalCount] = Proposal(
-            proposalCount, 
-            _name, 
-            _amount, 
-            _recipient, 
-            0, 
-            0, 
-            0, 
+            proposalCount,
+            _name,
+            _amount,
+            _recipient,
+            0,
+            0,
+            0,
             false
         );
 
@@ -116,8 +117,8 @@ contract DAO {
             proposal.votesFor +=  token.balanceOf(msg.sender);
 //            proposal.votes +=  token.balanceOf(msg.sender);
         } else if (_voteType == VoteType.Against) {
-            proposal.votesAgainst +=  token.balanceOf(msg.sender);            
-//            proposal.votes -=  token.balanceOf(msg.sender);            
+            proposal.votesAgainst +=  token.balanceOf(msg.sender);
+//            proposal.votes -=  token.balanceOf(msg.sender);
         } else if (_voteType == VoteType.Abstain) {
             proposal.votesAbstain += token.balanceOf(msg.sender);
         }

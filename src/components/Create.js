@@ -20,34 +20,39 @@ const Create = ({ provider, dao, setIsLoading }) => {
 
       const transaction = await dao.connect(signer).createProposal(name, formattedAmount, address)
       await transaction.wait()
-    } catch {
-      window.alert('User rejected or transaction reverted')
+    } catch (error) {
+      if (error.code === 4001) {
+        window.alert('Transaction rejected by the user.');
+      } else {
+        window.alert('Transaction failed: ' + (error.reason || error.message || 'Unknown error'));
+      }
     }
 
+    setIsWaiting(false)
     setIsLoading(true)
   }
 
   return(
     <Form onSubmit={createHandler}>
-      <Form.Group 
-        style={{ maxWidth: '450px', margin: '50px auto' }}
+      <Form.Group
+        style={{ maxWidth: '650px', margin: '50px auto' }}
         className='bg-dark text-light p-4 rounded'
       >
         <Form.Control
           type='text'
-          placeholder='Enter name'
+          placeholder='Enter proposal description'
           className='my-2'
           onChange={(e) => setName(e.target.value)}
         />
         <Form.Control
           type='number'
-          placeholder='Enter amount'
+          placeholder='Enter amount from treasury to be assigned to proposal'
           className='my-2 bg-dark text-light'
           onChange={(e) => setAmount(e.target.value)}
         />
         <Form.Control
           type='text'
-          placeholder='Enter address'
+          placeholder='Enter recipient address if proposal is approved'
           className='my-2'
           onChange={(e) => setAddress(e.target.value)}
         />
