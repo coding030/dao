@@ -66,6 +66,8 @@ const Proposals = ({
   		const transaction = await dao.connect(signer).vote(id, voteType)
   		await transaction.wait()
   		console.log("transaction (Proposals.js):", transaction)
+      console.log("id:", id)
+      console.log("voteType:", voteType)
     } catch (error) {
       if (error.code === 4001) {
         window.alert('Transaction rejected by the user.');
