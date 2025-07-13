@@ -68,16 +68,6 @@ function App() {
         ...proposal,
         recipientBalance: recipientTokens,
         deadline: proposal.deadline ? proposal.deadline.toNumber() : 0
-//  id: proposal.id.toNumber(),
-//  name: proposal.name,
-//  amount: proposal.amount,
-//  recipient: proposal.recipient,
-//  votesFor: proposal.votesFor,
-//  votesAgainst: proposal.votesAgainst,
-//  votesAbstain: proposal.votesAbstain,
-//  finalized: proposal.finalized,
-//  deadline: proposal.deadline.toNumber(),
-//  recipientBalance: recipientTokens
       })
 
       const hasVoted = await dao.votes(account, proposal.id)
@@ -86,13 +76,6 @@ function App() {
 
     setProposals([...items])
     setVoteStatus({...statuses})
-
-//    console.log("vote statuses:", Object.entries(statuses).map(
-//      ([id, hasVoted]) => ({
-//        id,
-//        hasVoted
-//      })
-//    ));
 
 console.log("Proposals after loading (App.js):");
 console.table(items.map(p => ({

@@ -76,7 +76,7 @@ async function main() {
 //      transaction = await dao.connect(investor1).finalizeProposal(i + 1)
 //      await transaction.wait()
 
-      console.log(`Created & Finalized Proposal ${i + 1}\n`)
+      console.log(`Created Proposals ${i + 1}\n`)
   }
 
     console.log(`Creating one more proposal...\n`)

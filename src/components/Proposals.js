@@ -4,20 +4,6 @@ import { OverlayTrigger, Tooltip } from 'react-bootstrap'
 import { ethers } from 'ethers'
 import React, { useState, useEffect } from 'react';
 
-//const getTimeRemaining = (deadline) => {
-//  const now = Math.floor(Date.now() / 1000)
-//  const secondsRemaining = deadline - now//
-
-//  if (secondsRemaining <= 0) return "Expired"//
-
-//  const d = Math.floor(secondsRemaining / (3600 * 24))
-//  const h = Math.floor((secondsRemaining % (3600 * 24)) / 3600)
-//  const m = Math.floor((secondsRemaining % 3600) / 60)
-//  const s = secondsRemaining % 60//
-
-//  return `${d}d ${h}h ${m}m ${s}s`
-//}
-
 const Proposals = ({
 	provider,
 	dao,
@@ -199,7 +185,6 @@ const Proposals = ({
           </td>
           <td>
             {!proposal.finalized &&
-//                proposal.votesFor.sub(proposal.votesAgainst).gt(quorum) && (
               proposal.votesFor.gte(quorum) && (
               <OverlayTrigger
                 placement="top"

@@ -21,8 +21,6 @@ describe('DAO', () => {
 
   beforeEach(async () => {
     let accounts = await ethers.getSigners()
-//console.log(accounts[0])
-//console.log(accounts[0].address)
     deployer = accounts[0]
     funder = accounts[1]
     investor1 = accounts[2]
@@ -88,7 +86,6 @@ describe('DAO', () => {
 
       it('updates proposal mapping', async () => {
         const proposal = await dao.proposals(1)
-//        console.log(proposal)
         expect(proposal.id).to.equal(1)
         expect(proposal.amount).to.equal(ether(100))
         expect(proposal.recipient).to.equal(recipient.address)
