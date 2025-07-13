@@ -19,8 +19,8 @@ function App() {
   const [provider, setProvider] = useState(null)
   const [dao, setDao] = useState(null)
   const [treasuryBalance, setTreasuryBalance] = useState(0)
-//  const [recipientBalance, setRecipientBalance] = useState(0)
   const [voteStatus, setVoteStatus] = useState({})
+  const [isInvestor, setIsInvestor] = useState(false)
 
   const [account, setAccount] = useState('')
 
@@ -53,10 +53,12 @@ function App() {
     const account = ethers.utils.getAddress(accounts[0])
     setAccount(account)
 
+    const balance = await token.balanceOf(account)
+    setIsInvestor(balance.gt(0))
+
     const count = await dao.proposalCount()
     const items = []
     const statuses = {}
-//    const recBalances = []
 
     for(let i = 0; i < count; i++) {
       const proposal = await dao.proposals(i + 1)
@@ -64,25 +66,48 @@ function App() {
 
       items.push({
         ...proposal,
-        recipientBalance: recipientTokens
+        recipientBalance: recipientTokens,
+        deadline: proposal.deadline ? proposal.deadline.toNumber() : 0
+//  id: proposal.id.toNumber(),
+//  name: proposal.name,
+//  amount: proposal.amount,
+//  recipient: proposal.recipient,
+//  votesFor: proposal.votesFor,
+//  votesAgainst: proposal.votesAgainst,
+//  votesAbstain: proposal.votesAbstain,
+//  finalized: proposal.finalized,
+//  deadline: proposal.deadline.toNumber(),
+//  recipientBalance: recipientTokens
       })
 
       const hasVoted = await dao.votes(account, proposal.id)
       statuses[proposal.id.toString()] = hasVoted;
     }
 
-//    setProposals(items)
     setProposals([...items])
-//    setVoteStatus(statuses)
     setVoteStatus({...statuses})
 
-//  console.log("Proposals after loading:", items.map(p => ({
-//    id: p.id.toString(),
-//    name: p.name,
-//    votesFor: p.votesFor.toString(),
-//    votesAgainst: p.votesAgainst.toString(),
-//    finalized: p.finalized
-//  })))
+//    console.log("vote statuses:", Object.entries(statuses).map(
+//      ([id, hasVoted]) => ({
+//        id,
+//        hasVoted
+//      })
+//    ));
+
+console.log("Proposals after loading (App.js):");
+console.table(items.map(p => ({
+  id: p.id.toString(),
+  name: p.name,
+  votesFor: ethers.utils.formatUnits(p.votesFor, 18),
+  votesAgainst: ethers.utils.formatUnits(p.votesAgainst, 18),
+  votesAbstain: ethers.utils.formatUnits(p.votesAbstain, 18),
+  finalized: p.finalized,
+  expiresIn: p.deadline
+})))
+
+console.log("Account:", account);
+console.log("Token balance:", ethers.utils.formatEther(balance));
+console.log("Is investor:", balance.gt(0));
 
     // Fetch quorum
     let quorum = await dao.quorum()
@@ -94,10 +119,29 @@ function App() {
 
   useEffect(() => {
     if (isLoading) {
-//      loadBlockchainData().finally(() => setIsLoading(false));
       loadBlockchainData()
     }
   }, [isLoading]);
+
+  useEffect(() => {
+    if (window.ethereum) {
+      const handleAccountsChanged = (accounts) => {
+        if (accounts.length === 0) {
+          // MetaMask locked or disconnected
+          window.location.reload();
+        } else {
+          // Account changed - reload page or reload data
+          window.location.reload();
+        }
+      };
+
+      window.ethereum.on('accountsChanged', handleAccountsChanged);
+
+      return () => {
+        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+      };
+    }
+  }, []);
 
   return(
     <Container>
@@ -113,6 +157,7 @@ function App() {
             provider={provider}
             dao={dao}
             setIsLoading={setIsLoading}
+            isInvestor={isInvestor}
           />
 
           <hr/>
@@ -137,6 +182,7 @@ function App() {
             setIsLoading={setIsLoading}
             account={account}
             voteStatus={voteStatus}
+            isInvestor={isInvestor}
           />
         </>
       )}

@@ -7,13 +7,6 @@ const tokens = (n) => {
 
 const ether = tokens
 
-//Mainnet
-//const usdcAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
-//Linea Sepolia
-//const usdcAddress = '0xFEce4462D57bD51A6A552365A011b95f0E16d9B7'
-//Ethereum Sepolia
-const usdcAddress = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
-
 describe('DAO', () => {
   let token, dao
   let deployer,
@@ -105,6 +98,12 @@ describe('DAO', () => {
         await expect(transaction).to.emit(dao, 'Propose')
           .withArgs(1, ether(100), recipient.address, investor1.address)
       })
+
+      it('sets a proposal deadline in the future', async () => {
+        const proposal = await dao.proposals(1)
+        const currentTime = (await ethers.provider.getBlock("latest")).timestamp
+        expect(proposal.deadline).to.be.gt(currentTime)
+      })
     })
 
     describe('Failure', () => {
@@ -153,7 +152,6 @@ describe('DAO', () => {
         proposal = await dao.proposals(1)
         expect(proposal.votesAgainst).to.equal(tokens(200000))
       })
-
     })
 
     describe('Failure', () => {
@@ -167,6 +165,14 @@ describe('DAO', () => {
         result = await transaction.wait()
 
         await expect(dao.connect(investor1).vote(1, 1)).to.be.reverted
+      })
+
+      it('prevents voting after deadline', async () => {
+        // Advance time beyond the deadline
+        await network.provider.send("evm_increaseTime", [3 * 24 * 60 * 60 + 1]) // 3 days + 1 sec
+        await network.provider.send("evm_mine")
+
+        await expect(dao.connect(investor2).vote(1, 0)).to.be.revertedWith("Voting period has ended")
       })
     })
   })
@@ -184,36 +190,51 @@ describe('DAO', () => {
         // Vote
         transaction = await dao.connect(investor1).vote(1, 0)
         result = await transaction.wait()
-
         transaction = await dao.connect(investor2).vote(1, 0)
         result = await transaction.wait()
-
         transaction = await dao.connect(investor3).vote(1, 0)
-        result = await transaction.wait()
-
-//        transaction = await dao.connect(investor4).vote(1, 1)
-//        result = await transaction.wait()
-
-        // Finalize proposal
-        transaction = await dao.connect(investor1).finalizeProposal(1)
         result = await transaction.wait()
       })
 
       it('transfers funds to the recipient', async () => {
+        // Finalize proposal
+        transaction = await dao.connect(investor1).finalizeProposal(1)
+        result = await transaction.wait()
         expect(await ethers.provider.getBalance(recipient.address)).to.equal(tokens(10100))
       })
 
       it('it updates the proposal to finalized', async () => {
+        // Finalize proposal
+        transaction = await dao.connect(investor1).finalizeProposal(1)
+        result = await transaction.wait()
         // after this the recipient actually has 10200 tokens
         const proposal = await dao.proposals(1)
         expect(proposal.finalized).to.equal(true)
       })
 
-      it('emit a finalize event', async () => {
+      it('emits a finalize event', async () => {
+        // Finalize proposal
+        transaction = await dao.connect(investor1).finalizeProposal(1)
+        result = await transaction.wait()
         await expect(transaction).to.emit(dao, 'Finalize')
           .withArgs(1)
       })
 
+      it('allows finalization before deadline if quorum is met', async () => {
+        await dao.connect(investor1).finalizeProposal(1)
+        const proposal = await dao.proposals(1)
+        expect(proposal.finalized).to.equal(true)
+      })
+
+      it('allows finalization after deadline if quorum is met', async () => {
+        // Wait for deadline to pass
+        await network.provider.send("evm_increaseTime", [3 * 24 * 60 * 60 + 1])
+        await network.provider.send("evm_mine")
+
+        await dao.connect(investor1).finalizeProposal(1) // should succeed
+        const proposal = await dao.proposals(1)
+        expect(proposal.finalized).to.equal(true)
+      })
     })
 
     describe('Failure', () => {
